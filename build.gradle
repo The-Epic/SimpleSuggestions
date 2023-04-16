@@ -4,7 +4,7 @@ plugins {
     id 'io.freefair.lombok' version '6.6.3'
 }
 
-group = 'me.epic'
+group = 'xyz.epicebic'
 version = '1.0.0-SNAPSHOT'
 
 repositories {
