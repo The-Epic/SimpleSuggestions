@@ -5,4 +5,10 @@ api-version: 1.17
 authors: [ Epic ]
 website: https://github.com/The-Epic/SimpleSuggestions
 libraries:
-#  - 'com.zaxxer:HikariCP:5.0.1'
+  - 'com.zaxxer:HikariCP:5.0.1'
+  - 'net.dv8tion:JDA:5.0.0-beta.8'
+
+
+commands:
+  suggest:
+    permission: simplesuggestions.command.suggest

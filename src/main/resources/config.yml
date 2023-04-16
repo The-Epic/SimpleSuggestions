@@ -1,0 +1,8 @@
+#Discord Bot info
+discord-bot:
+  enabled: false
+  token: "CHANGE-ME"
+  status: "ONLINE"
+  activity:
+    type: "WATCHING"
+    text: "Your suggestions!"
