@@ -1,4 +1,4 @@
-package me.epic.simplesuggestions;
+package xyz.epicebic.simplesuggestions;
 
 import org.bukkit.plugin.java.JavaPlugin;
 

@@ -1,10 +1,8 @@
 name: SimpleSuggestions
 version: '${version}'
-main: me.epic.simplesuggestions.SimpleSuggestions
+main: xyz.epicebic.simplesuggestions.SimpleSuggestions
 api-version: 1.17
 authors: [ Epic ]
 website: https://github.com/The-Epic/SimpleSuggestions
 libraries:
-  #  - 'com.zaxxer:HikariCP:5.0.1'
-  - 'net.kyori:adventure-text-minimessage:4.11.0'
-  - 'net.kyori:adventure-text-serializer-legacy:4.11.0'
+#  - 'com.zaxxer:HikariCP:5.0.1'
