@@ -1,15 +1,12 @@
 package xyz.epicebic.simplesuggestions.storage;
 
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Data;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-@ToString
-@EqualsAndHashCode
+@Data
 public class SuggestionData {
     private final Type suggestionType;
     private Status status;
@@ -20,6 +17,8 @@ public class SuggestionData {
     private String suggestion;
     @Nullable
     private Long discordMessageId;
+    private Integer upvotes = 0;
+    private Integer downvotes = 0;
 
     public SuggestionData(Type suggestionType, Status status, @Nullable UUID ownerMinecraftUUID, Long ownerDiscordID, String suggestion, @Nullable Long discordMessageId) {
         this.suggestionType = suggestionType;
@@ -46,6 +45,22 @@ public class SuggestionData {
         this.ownerDiscordID = ownerDiscordID;
         this.suggestion = suggestion;
         this.discordMessageId = discordMessageId;
+    }
+
+    public Integer increaseUpvote() {
+        return upvotes++;
+    }
+
+    public Integer increaseDownvote() {
+        return downvotes++;
+    }
+
+    public Integer decreaseUpvote() {
+        return upvotes--;
+    }
+
+    public Integer decreaseDownvote() {
+        return downvotes--;
     }
 
     public enum Type {

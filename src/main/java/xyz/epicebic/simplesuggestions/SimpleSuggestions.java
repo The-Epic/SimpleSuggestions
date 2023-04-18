@@ -2,6 +2,7 @@ package xyz.epicebic.simplesuggestions;
 
 import lombok.Getter;
 import lombok.SneakyThrows;
+import me.epic.spigotlib.config.ConfigUpdater;
 import me.epic.spigotlib.language.MessageConfig;
 import me.epic.spigotlib.utils.FileUtils;
 import net.dv8tion.jda.api.JDA;
@@ -11,11 +12,7 @@ import net.dv8tion.jda.api.entities.Activity;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 import xyz.epicebic.simplesuggestions.commands.minecraft.SuggestCommand;
-import xyz.epicebic.simplesuggestions.storage.SuggestionData;
 import xyz.epicebic.simplesuggestions.storage.SuggestionHandler;
-import xyz.epicebic.simplesuggestions.storage.impl.JsonStorageHandler;
-
-import java.util.UUID;
 
 public class SimpleSuggestions extends JavaPlugin {
 
@@ -33,11 +30,12 @@ public class SimpleSuggestions extends JavaPlugin {
     public void onEnable() {
         // Plugin startup logic
         instance = this;
+        this.suggestionHandler = new SuggestionHandler(this);
         FileUtils.loadResourceFile(this, "messages.yml").ifPresent(file -> this.messageConfig = new MessageConfig(file));
+        ConfigUpdater.runConfigUpdater(this);
         reload();
         loadCommands();
         loadDiscordBot();
-        this.suggestionHandler = new SuggestionHandler(this);
     }
 
     @Override

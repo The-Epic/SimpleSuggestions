@@ -6,3 +6,17 @@ discord-bot:
   activity:
     type: "WATCHING"
     text: "Your suggestions!"
+
+
+storage:
+  #Valid storage:
+  # -mysql
+  # -sqlite
+  # -json (NOT RECOMMENDED FOR MORE THAN 10 PLAYERS)
+  type: sqlite
+  mysql:
+    db-name: simplesuggestions
+    ip: 127.0.0.1
+    port: '3306'
+    username: simplesuggestions
+    password: simplesuggestions
