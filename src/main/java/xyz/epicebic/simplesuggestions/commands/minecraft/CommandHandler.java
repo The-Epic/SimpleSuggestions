@@ -6,10 +6,7 @@ import xyz.epicebic.simplesuggestions.SimpleSuggestions;
 
 public class CommandHandler extends ArgumentCommandHandler {
 
-    private final SimpleSuggestions plugin;
-
     public CommandHandler(SimpleSuggestions plugin) {
         super(plugin.getMessageConfig(), "simplesuggestions.command");
-        this.plugin = plugin;
     }
 }
