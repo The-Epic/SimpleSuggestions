@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -19,8 +18,9 @@ public class JsonStorageHandler implements StorageHandler {
 
     private int nextId = 1;
     private final Map<Integer, SuggestionData> suggestions = new HashMap<>();
+    private final Map<UUID, Map<Integer, Boolean>> playerData = new HashMap<>();
     private final Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-    private final File jsonFile = new File(SimpleSuggestions.getInstance().getDataFolder(), "suggestionData.json");
+    private final File jsonFile = new File(SimpleSuggestions.getInstance().getDataFolder(), "data.json");
 
     @SneakyThrows
     @SuppressWarnings("null")
@@ -43,19 +43,24 @@ public class JsonStorageHandler implements StorageHandler {
     @Override
     public CompletableFuture<SuggestionData> readSuggestion(Integer id) {
         SuggestionData data = suggestions.get(id);
-        return CompletableFuture.supplyAsync(() -> {
-            if (data != null) return data;
-            return readFile().get(id);
-        });
+        return CompletableFuture.supplyAsync(() -> data);
     }
 
     @Override
-    public CompletableFuture<List<SuggestionData>> readSuggestions(UUID uuid) {
+    public CompletableFuture<Map<Integer, SuggestionData>> readSuggestions(UUID uuid) {
+//        return CompletableFuture.supplyAsync(() -> {
+//            Map
+//            for (Map.Entry<Integer, SuggestionData> entry : suggestions.entrySet()) {
+//                if (entry.getValue().getSuggestionType() == SuggestionData.Type.MINECRAFT) {
+//
+//                }
+//            }
+//        });
         return null;
     }
 
     @Override
-    public CompletableFuture<List<SuggestionData>> readSuggestions(Long id) {
+    public CompletableFuture<Map<Integer, SuggestionData>> readSuggestions(Long id) {
         return null;
     }
 
@@ -65,23 +70,54 @@ public class JsonStorageHandler implements StorageHandler {
     }
 
     @Override
-    public CompletableFuture<Void> addVotedSuggestiono(Integer id, UUID uuid) {
+    public CompletableFuture<Void> addVotedSuggestion(Integer id, UUID uuid) {
         return null;
+    }
+
+    @Override
+    public CompletableFuture<Map<Integer, Boolean>> getVotedSuggestions(Long id) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> addVotedSuggestion(Integer id, Long userId) {
+        return null;
+    }
+
+    @Override
+    public Map<Integer, SuggestionData> getSuggestions() {
+        return suggestions;
     }
 
     @Override
     public void save() {
         JsonObject jsonObject = new JsonObject();
+
+        // Save suggestions map
+        JsonObject suggestionsObject = new JsonObject();
         for (Map.Entry<Integer, SuggestionData> entry : suggestions.entrySet()) {
-            jsonObject.add(String.valueOf(entry.getKey()), gson.toJsonTree(entry.getValue()));
+            suggestionsObject.add(String.valueOf(entry.getKey()), gson.toJsonTree(entry.getValue()));
         }
+        jsonObject.add("suggestions", suggestionsObject);
+
+        // Save playerData map
+        JsonObject playerDataObject = new JsonObject();
+        for (Map.Entry<UUID, Map<Integer, Boolean>> entry : playerData.entrySet()) {
+            String uuidString = entry.getKey().toString();
+            JsonObject playerObject = new JsonObject();
+            for (Map.Entry<Integer, Boolean> innerEntry : entry.getValue().entrySet()) {
+                playerObject.addProperty(String.valueOf(innerEntry.getKey()), innerEntry.getValue());
+            }
+            playerDataObject.add(uuidString, playerObject);
+        }
+        jsonObject.add("playerData", playerDataObject);
+
         try {
             Files.writeString(jsonFile.toPath(), gson.toJson(jsonObject));
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
-
     public Integer getNextId() {
         return nextId++;
     }
@@ -89,16 +125,41 @@ public class JsonStorageHandler implements StorageHandler {
     @SneakyThrows
     private Map<Integer, SuggestionData> readFile() {
         String json = Files.readString(jsonFile.toPath());
-        JsonElement element = new JsonParser().parse(json);
+        JsonElement element = JsonParser.parseString(json);
         if (element.isJsonObject()) {
             JsonObject jsonObject = element.getAsJsonObject();
+
+            // Read suggestions map
             Map<Integer, SuggestionData> suggestionDataMap = new HashMap<>();
-            for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
-                int id = Integer.parseInt(entry.getKey());
-                SuggestionData data = gson.fromJson(entry.getValue(), SuggestionData.class);
-                nextId = id + 1;
-                suggestionDataMap.put(id, data);
+            if (jsonObject.has("suggestions")) {
+                JsonObject suggestionsObject = jsonObject.getAsJsonObject("suggestions");
+                for (Map.Entry<String, JsonElement> entry : suggestionsObject.entrySet()) {
+                    int id = Integer.parseInt(entry.getKey());
+                    SuggestionData data = gson.fromJson(entry.getValue(), SuggestionData.class);
+                    nextId = id + 1;
+                    suggestionDataMap.put(id, data);
+                }
             }
+
+            // Read playerData map
+            Map<UUID, Map<Integer, Boolean>> playerDataMap = new HashMap<>();
+            if (jsonObject.has("playerData")) {
+                JsonObject playerDataObject = jsonObject.getAsJsonObject("playerData");
+                for (Map.Entry<String, JsonElement> entry : playerDataObject.entrySet()) {
+                    UUID uuid = UUID.fromString(entry.getKey());
+                    JsonObject playerObject = entry.getValue().getAsJsonObject();
+                    Map<Integer, Boolean> innerMap = new HashMap<>();
+                    for (Map.Entry<String, JsonElement> innerEntry : playerObject.entrySet()) {
+                        int suggestionId = Integer.parseInt(innerEntry.getKey());
+                        boolean voted = innerEntry.getValue().getAsBoolean();
+                        innerMap.put(suggestionId, voted);
+                    }
+                    playerDataMap.put(uuid, innerMap);
+                }
+            }
+
+            this.playerData.putAll(playerDataMap);
+
             return suggestionDataMap;
         }
         throw new IllegalArgumentException("The json is misformatted. Regenerate the file");

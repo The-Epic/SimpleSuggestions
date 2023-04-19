@@ -4,6 +4,7 @@ import me.epic.spigotlib.commands.SimpleCommandHandler;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import xyz.epicebic.simplesuggestions.SimpleSuggestions;
+import xyz.epicebic.simplesuggestions.gui.SuggestionViewerInventory;
 import xyz.epicebic.simplesuggestions.storage.SuggestionData;
 
 import java.util.Collections;
@@ -30,9 +31,8 @@ public class SuggestCommand extends SimpleCommandHandler {
         }
 
         SuggestionData data = new SuggestionData(SuggestionData.Type.MINECRAFT, player.getUniqueId(), String.join(" ", args));
-        plugin.getSuggestionHandler().save(data).whenComplete((id,ex) -> {
-            System.out.println(id);
-        });
+        plugin.getSuggestionHandler().save(data).whenComplete((id,ex) -> System.out.println(id));
+        plugin.getInventoryHandler().openGui(player, new SuggestionViewerInventory(player));
     }
 
     @Override
