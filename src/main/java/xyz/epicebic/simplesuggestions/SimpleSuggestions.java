@@ -2,6 +2,7 @@ package xyz.epicebic.simplesuggestions;
 
 import lombok.Getter;
 import lombok.SneakyThrows;
+import me.epic.spigotlib.EpicSpigotLib;
 import me.epic.spigotlib.config.ConfigUpdater;
 import me.epic.spigotlib.language.MessageConfig;
 import me.epic.spigotlib.utils.FileUtils;
@@ -34,6 +35,7 @@ public class SimpleSuggestions extends JavaPlugin {
     public void onEnable() {
         // Plugin startup logic
         instance = this;
+        EpicSpigotLib.loadNMS(this);
         FileUtils.loadResourceFile(this, "messages.yml").ifPresent(file -> this.messageConfig = new MessageConfig(file));
         ConfigUpdater.runConfigUpdater(this);
         this.suggestionHandler = new SuggestionHandler(this);
@@ -70,7 +72,6 @@ public class SimpleSuggestions extends JavaPlugin {
         String token = botSection.getString("token", "CHANGE-ME");
         if (token.equals("CHANGE-ME")) {
             getLogger().severe("Invalid discord bot token provided. Shutting down.");
-            getPluginLoader().disablePlugin(this);
             return;
         }
         ConfigurationSection activitySection = botSection.getConfigurationSection("activity");

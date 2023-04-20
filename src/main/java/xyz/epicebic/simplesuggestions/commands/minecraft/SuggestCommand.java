@@ -19,6 +19,7 @@ public class SuggestCommand extends SimpleCommandHandler {
         this.plugin = plugin;
     }
 
+
     @Override
     public void handleCommand(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -31,8 +32,10 @@ public class SuggestCommand extends SimpleCommandHandler {
         }
 
         SuggestionData data = new SuggestionData(SuggestionData.Type.MINECRAFT, player.getUniqueId(), String.join(" ", args));
-        plugin.getSuggestionHandler().save(data).whenComplete((id,ex) -> System.out.println(id));
-        plugin.getInventoryHandler().openGui(player, new SuggestionViewerInventory(player));
+        int id = plugin.getSuggestionHandler().save(data);
+        System.out.println(id);
+        plugin.getSuggestionHandler().addVotedSuggestion(id, player.getUniqueId(), true);
+        if (args[0].startsWith("openguinow")) plugin.getInventoryHandler().openGui(player, new SuggestionViewerInventory(player));
     }
 
     @Override

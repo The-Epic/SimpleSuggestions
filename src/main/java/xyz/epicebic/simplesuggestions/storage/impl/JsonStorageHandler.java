@@ -31,13 +31,10 @@ public class JsonStorageHandler implements StorageHandler {
     }
 
     @Override
-    public CompletableFuture<Integer> saveSuggestion(SuggestionData data) {
-        return CompletableFuture.supplyAsync(() -> {
-            Integer newId = getNextId();
-            suggestions.put(newId, data);
-
-            return newId;
-        });
+    public int saveSuggestion(SuggestionData data) {
+        Integer newId = getNextId();
+        suggestions.put(newId, data);
+        return newId;
     }
 
     @Override
@@ -65,13 +62,22 @@ public class JsonStorageHandler implements StorageHandler {
     }
 
     @Override
-    public CompletableFuture<Map<Integer, Boolean>> getVotedSuggestions(UUID uuid) {
-        return null;
+    public Map<Integer, Boolean> getVotedSuggestions(UUID uuid) {
+        return playerData.get(uuid);
     }
 
     @Override
-    public CompletableFuture<Void> addVotedSuggestion(Integer id, UUID uuid) {
-        return null;
+    public void addVotedSuggestion(Integer id, UUID uuid, boolean choice) {
+        Map<Integer, Boolean> data = playerData.getOrDefault(uuid, new HashMap<>());
+        data.put(id, choice);
+        playerData.put(uuid, data);
+    }
+
+    @Override
+    public void removeVotedSuggestion(Integer id, UUID uuid) {
+        Map<Integer, Boolean> data = playerData.getOrDefault(uuid, new HashMap<>());
+        data.remove(id);
+        playerData.put(uuid, data);
     }
 
     @Override
@@ -80,8 +86,13 @@ public class JsonStorageHandler implements StorageHandler {
     }
 
     @Override
-    public CompletableFuture<Void> addVotedSuggestion(Integer id, Long userId) {
+    public CompletableFuture<Void> addVotedSuggestion(Integer id, Long userId, boolean choice) {
         return null;
+    }
+
+    @Override
+    public void removeVotedSuggestion(Integer id, Long userId) {
+
     }
 
     @Override

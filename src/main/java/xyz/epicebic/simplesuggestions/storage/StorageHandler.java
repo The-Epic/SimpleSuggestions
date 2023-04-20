@@ -6,16 +6,18 @@ import java.util.concurrent.CompletableFuture;
 
 public interface StorageHandler {
 
-    CompletableFuture<Integer> saveSuggestion(SuggestionData data);
+    int saveSuggestion(SuggestionData data);
     CompletableFuture<SuggestionData> readSuggestion(Integer id);
     CompletableFuture<Map<Integer, SuggestionData>> readSuggestions(UUID uuid);
     CompletableFuture<Map<Integer, SuggestionData>> readSuggestions(Long id);
 
-    CompletableFuture<Map<Integer, Boolean>> getVotedSuggestions(UUID uuid);
-    CompletableFuture<Void> addVotedSuggestion(Integer id, UUID uuid);
+    Map<Integer, Boolean> getVotedSuggestions(UUID uuid);
+    void addVotedSuggestion(Integer id, UUID uuid, boolean choice);
+    void removeVotedSuggestion(Integer id, UUID uuid);
 
     CompletableFuture<Map<Integer, Boolean>> getVotedSuggestions(Long id);
-    CompletableFuture<Void> addVotedSuggestion(Integer id, Long userId);
+    CompletableFuture<Void> addVotedSuggestion(Integer id, Long userId, boolean choice);
+    void removeVotedSuggestion(Integer id, Long userId);
 
     Map<Integer, SuggestionData> getSuggestions();
 

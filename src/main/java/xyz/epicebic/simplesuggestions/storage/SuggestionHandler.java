@@ -5,6 +5,7 @@ import org.bukkit.scheduler.BukkitTask;
 import xyz.epicebic.simplesuggestions.SimpleSuggestions;
 import xyz.epicebic.simplesuggestions.storage.impl.JsonStorageHandler;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -43,7 +44,7 @@ public class SuggestionHandler {
      * @param data to save
      * @return Future of id
      */
-    public CompletableFuture<Integer> save(SuggestionData data) {
+    public int save(SuggestionData data) {
         return storageHandler.saveSuggestion(data);
     }
 
@@ -61,8 +62,17 @@ public class SuggestionHandler {
         return storageHandler.getSuggestions();
     }
 
-    public CompletableFuture<Map<Integer, Boolean>> getVotedSuggestions(UUID uuid) {
-        return storageHandler.getVotedSuggestions(uuid);
+    public Map<Integer, Boolean> getVotedSuggestions(UUID uuid) {
+        Map<Integer, Boolean> map = storageHandler.getVotedSuggestions(uuid);
+        return map == null ? new HashMap<>() : map;
+    }
+
+    public void addVotedSuggestion(int id, UUID uuid, boolean choice) {
+        storageHandler.addVotedSuggestion(id, uuid, choice);
+    }
+
+    public void removeVotedSuggestion(int id, UUID uuid) {
+        storageHandler.removeVotedSuggestion(id, uuid);
     }
 
     public void saveData() {
