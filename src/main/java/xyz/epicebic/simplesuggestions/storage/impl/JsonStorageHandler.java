@@ -12,7 +12,6 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class JsonStorageHandler implements StorageHandler {
 
@@ -38,13 +37,13 @@ public class JsonStorageHandler implements StorageHandler {
     }
 
     @Override
-    public CompletableFuture<SuggestionData> readSuggestion(Integer id) {
+    public SuggestionData readSuggestion(Integer id) {
         SuggestionData data = suggestions.get(id);
-        return CompletableFuture.supplyAsync(() -> data);
+        return data;
     }
 
     @Override
-    public CompletableFuture<Map<Integer, SuggestionData>> readSuggestions(UUID uuid) {
+    public Map<Integer, SuggestionData> readSuggestions(UUID uuid) {
 //        return CompletableFuture.supplyAsync(() -> {
 //            Map
 //            for (Map.Entry<Integer, SuggestionData> entry : suggestions.entrySet()) {
@@ -57,7 +56,7 @@ public class JsonStorageHandler implements StorageHandler {
     }
 
     @Override
-    public CompletableFuture<Map<Integer, SuggestionData>> readSuggestions(Long id) {
+    public Map<Integer, SuggestionData> readSuggestions(Long id) {
         return null;
     }
 
@@ -81,13 +80,13 @@ public class JsonStorageHandler implements StorageHandler {
     }
 
     @Override
-    public CompletableFuture<Map<Integer, Boolean>> getVotedSuggestions(Long id) {
+    public Map<Integer, Boolean> getVotedSuggestions(Long id) {
         return null;
     }
 
     @Override
-    public CompletableFuture<Void> addVotedSuggestion(Integer id, Long userId, boolean choice) {
-        return null;
+    public void addVotedSuggestion(Integer id, Long userId, boolean choice) {
+        return;
     }
 
     @Override
