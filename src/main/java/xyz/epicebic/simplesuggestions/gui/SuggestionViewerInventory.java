@@ -2,7 +2,6 @@ package xyz.epicebic.simplesuggestions.gui;
 
 import me.epic.spigotlib.PDT;
 import me.epic.spigotlib.formatting.Formatting;
-import me.epic.spigotlib.inventory.CustomInventory;
 import me.epic.spigotlib.items.ItemBuilder;
 import me.epic.spigotlib.utils.WordUtils;
 import org.bukkit.Material;
@@ -15,8 +14,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import xyz.epicebic.simplesuggestions.SimpleSuggestions;
-import xyz.epicebic.simplesuggestions.storage.SuggestionData;
+import xyz.epicebic.simplesuggestions.storage.data.SuggestionData;
 import xyz.epicebic.simplesuggestions.storage.SuggestionHandler;
+import xyz.epicebic.simplesuggestions.storage.data.SuggestionVote;
 
 import java.util.*;
 
@@ -26,7 +26,7 @@ public class SuggestionViewerInventory extends CustomInventory {
     private static final int END_SLOT = 45;
     private static final int ITEMS_PER_PAGE = END_SLOT - START_SLOT;
     private final Map<Integer, SuggestionData> suggestionDataMap = new HashMap<>();
-    private final Map<Integer, Boolean> playerVotes = new HashMap<>();
+    private final Map<Integer, SuggestionVote> playerVotes = new HashMap<>();
     private static final NamespacedKey INDEX_KEY = NamespacedKey.fromString("simplechatgames:index");
     private static final NamespacedKey SUGGESTION_ID_KEY = NamespacedKey.fromString("simplechatgames:suggestionid");
     private static final ItemStack PREV = new ItemBuilder(Material.PLAYER_HEAD).name("Previous Page")
@@ -56,15 +56,15 @@ public class SuggestionViewerInventory extends CustomInventory {
                 switch (event.getAction()) {
                     case PICKUP_ALL -> {
                         handler.addVotedSuggestion(id, player.getUniqueId(), true);
-                        playerVotes.put(id, true);
+                        playerVotes.put(id, SuggestionVote.UPVOTE);
                     }
                     case MOVE_TO_OTHER_INVENTORY -> {
                         handler.removeVotedSuggestion(id, player.getUniqueId());
                         playerVotes.remove(id);
                     }
-                    default -> {
+                    case PICKUP_HALF -> {
                         handler.addVotedSuggestion(id, player.getUniqueId(), false);
-                        playerVotes.put(id, false);
+                        playerVotes.put(id, SuggestionVote.DOWNVOTE);
                     }
                 }
                 setItem(event.getRawSlot(), makeSuggestionItem(id, suggestionDataMap.get(id)));
@@ -73,8 +73,9 @@ public class SuggestionViewerInventory extends CustomInventory {
         populateItems();
     }
 
-    private void populateItems() {
+    public void populateItems() {
         if (suggestionDataMap.isEmpty()) return;
+        // Suggestions
         for (int i = 0; i < ITEMS_PER_PAGE; i++) {
             int index = i + start;
             int slot = START_SLOT + i;
@@ -88,11 +89,13 @@ public class SuggestionViewerInventory extends CustomInventory {
             setItem(slot, makeSuggestionItem(id, data));
         }
 
+        // Filler bars
         for (int i = 0, j = 45; i <= 8 && j <= 53; i++, j++) {
             setItem(i, FILLER);
             setItem(j, FILLER);
         }
 
+        // Buttons
         if (start + ITEMS_PER_PAGE < suggestionDataMap.size()) {
             addButton(52,
                     ItemBuilder.modifyItem(NEXT)
@@ -109,6 +112,13 @@ public class SuggestionViewerInventory extends CustomInventory {
         } else {
             removeButton(46);
         }
+
+        // Page Counter
+        int maxPages = (int) Math.ceil((double) suggestionDataMap.size() / ITEMS_PER_PAGE);
+        int currentPage = start / ITEMS_PER_PAGE + 1;
+
+        ItemStack pageItem = new ItemBuilder(Material.PAPER).name("<gold>Pages").lore("<white>" + currentPage + "/" + maxPages).build();
+        setItem(49, pageItem);
     }
 
     private void gotoPage(InventoryClickEvent event) {
@@ -134,13 +144,16 @@ public class SuggestionViewerInventory extends CustomInventory {
             lore.add(suggestionFormatted.get(i));
         }
         lore.add("<gold>Origin: <white>" + WordUtils.getNiceName(data.getSuggestionType().toString()));
-        Boolean vote = playerVotes.get(id);
-        if (vote != null) {
+        lore.add("<gold>Owner: <white>" + data.getOwnersName());
+        lore.add("");
+        SuggestionVote playerVote = playerVotes.get(id);
+        if (playerVote != null) {
             builder.enchantment(Enchantment.MENDING, 1);
             builder.flags(ItemFlag.HIDE_ENCHANTS);
-            lore.add("");
-            lore.add("<gold>Choice: <white>" + (vote ? "upvote" : "downvote"));
+            lore.add("<gold>Choice: <white>" + playerVote.toString().toLowerCase());
         }
+        lore.add("<gold>Upvotes: <white>" + data.getUpvotes());
+        lore.add("<gold>Downvotes: <white>" + data.getDownvotes());
         builder.lore(lore);
         return builder.build();
     }
@@ -149,7 +162,7 @@ public class SuggestionViewerInventory extends CustomInventory {
         return SimpleSuggestions.getInstance().getSuggestionHandler().getSuggestions();
     }
 
-    private Map<Integer, Boolean> getPlayerVotes(Player player) {
+    private Map<Integer, SuggestionVote> getPlayerVotes(Player player) {
         return SimpleSuggestions.getInstance().getSuggestionHandler().getVotedSuggestions(player.getUniqueId());
     }
 
@@ -161,4 +174,18 @@ public class SuggestionViewerInventory extends CustomInventory {
         }
     }
 
+    @Override
+    public void reloadItem(int suggestionId, SuggestionData newData) {
+        ItemStack[] contents = getBukkitInventory().getContents();
+        for(int slot = 0; slot < contents.length; slot++) {
+            if (contents[slot] == null || contents[slot].getType().isAir()) continue;
+            Optional<Integer> suggestionIdFromItem = getSuggestionIdFromItem(contents[slot]);
+            int finalSlot = slot;
+            suggestionIdFromItem.ifPresent(id -> {
+                if (suggestionId == id) {
+                    setItem(finalSlot, makeSuggestionItem(suggestionId, newData));
+                }
+            });
+        }
+    }
 }

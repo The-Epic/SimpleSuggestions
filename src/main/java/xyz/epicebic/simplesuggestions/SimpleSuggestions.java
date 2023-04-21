@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.entities.Activity;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
+import xyz.epicebic.simplesuggestions.commands.minecraft.CommandHandler;
 import xyz.epicebic.simplesuggestions.commands.minecraft.SuggestCommand;
 import xyz.epicebic.simplesuggestions.gui.InventoryHandler;
 import xyz.epicebic.simplesuggestions.storage.SuggestionHandler;
@@ -58,7 +59,7 @@ public class SimpleSuggestions extends JavaPlugin {
 
     public void loadCommands() {
         getCommand("suggest").setExecutor(new SuggestCommand(this));
-        //getCommand("simplesuggestions").setExecutor(new CommandHandler(this));
+        getCommand("simplesuggestions").setExecutor(new CommandHandler(this));
     }
 
     public boolean isDiscordEnabled() {

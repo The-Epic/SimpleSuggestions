@@ -1,50 +1,56 @@
-package xyz.epicebic.simplesuggestions.storage;
+package xyz.epicebic.simplesuggestions.storage.data;
 
 
 import lombok.Data;
+import net.dv8tion.jda.api.entities.User;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Nullable;
+import xyz.epicebic.simplesuggestions.SimpleSuggestions;
 
 import java.util.UUID;
 
 @Data
 public class SuggestionData {
-    private final Type suggestionType;
-    private Status status;
+    private final Origin suggestionType;
+    private SuggestionStatus status;
 
     @Nullable
     private UUID ownerMinecraftUUID;
     private Long ownerDiscordID;
+    private String lastOwnerName;
     private String suggestion;
     @Nullable
     private Long discordMessageId;
     private Integer upvotes = 0;
     private Integer downvotes = 0;
 
-    public SuggestionData(Type suggestionType, Status status, @Nullable UUID ownerMinecraftUUID, Long ownerDiscordID, String suggestion, @Nullable Long discordMessageId) {
+    public SuggestionData(Origin suggestionType, SuggestionStatus status, @Nullable UUID ownerMinecraftUUID, Long ownerDiscordID, String suggestion, @Nullable Long discordMessageId, String lastOwnerName) {
         this.suggestionType = suggestionType;
         this.status = status;
         this.ownerMinecraftUUID = ownerMinecraftUUID;
         this.ownerDiscordID = ownerDiscordID;
         this.suggestion = suggestion;
         this.discordMessageId = discordMessageId;
+        this.lastOwnerName = lastOwnerName;
     }
 
-    public SuggestionData(Type suggestionType, @Nullable UUID ownerMinecraftUUID, String suggestion) {
+    public SuggestionData(Origin suggestionType, @Nullable UUID ownerMinecraftUUID, String suggestion) {
         this.suggestionType = suggestionType;
-        this.status = Status.WAITING;
+        this.status = SuggestionStatus.WAITING;
         this.ownerMinecraftUUID = ownerMinecraftUUID;
         this.ownerDiscordID = null;
         this.suggestion = suggestion;
         this.discordMessageId = null;
     }
 
-    public SuggestionData(Type suggestionType, Long ownerDiscordID, String suggestion, @Nullable Long discordMessageId) {
+    public SuggestionData(Origin suggestionType, Long ownerDiscordID, String suggestion, @Nullable Long discordMessageId, String lastOwnerName) {
         this.suggestionType = suggestionType;
-        this.status = Status.WAITING;
+        this.status = SuggestionStatus.WAITING;
         this.ownerMinecraftUUID = null;
         this.ownerDiscordID = ownerDiscordID;
         this.suggestion = suggestion;
         this.discordMessageId = discordMessageId;
+        this.lastOwnerName = lastOwnerName;
     }
 
     public Integer increaseUpvote() {
@@ -63,16 +69,12 @@ public class SuggestionData {
         return downvotes--;
     }
 
-    public enum Type {
-        MINECRAFT,
-        DISCORD
-    }
-
-    public enum Status {
-        APPROVED,
-        DENIED,
-        CONSIDERED,
-        IMPLEMENTED,
-        WAITING
+    public String getOwnersName() {
+        if (suggestionType == Origin.MINECRAFT) {
+            return Bukkit.getOfflinePlayer(ownerMinecraftUUID).getName();
+        }
+        User user = SimpleSuggestions.getInstance().getJda().getUserById(ownerDiscordID);
+        if (user == null) return lastOwnerName;
+        return user.getName();
     }
 }

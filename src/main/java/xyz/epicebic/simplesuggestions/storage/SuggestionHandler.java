@@ -3,12 +3,13 @@ package xyz.epicebic.simplesuggestions.storage;
 import me.epic.spigotlib.utils.TickUtils;
 import org.bukkit.scheduler.BukkitTask;
 import xyz.epicebic.simplesuggestions.SimpleSuggestions;
+import xyz.epicebic.simplesuggestions.storage.data.SuggestionData;
+import xyz.epicebic.simplesuggestions.storage.data.SuggestionVote;
 import xyz.epicebic.simplesuggestions.storage.impl.JsonStorageHandler;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class SuggestionHandler {
 
@@ -24,7 +25,7 @@ public class SuggestionHandler {
 
     private void loadStorageType() {
         switch (plugin.getConfig().getString("storage.type", "sqlite")) {
-            case "json" -> this.storageHandler = new JsonStorageHandler();
+            case "json" -> this.storageHandler = new JsonStorageHandler(plugin);
             // TODO mysql (S-Q-L) + sqlite
             default -> {
                 plugin.getPluginLoader().disablePlugin(plugin);
@@ -54,7 +55,7 @@ public class SuggestionHandler {
      * @param id to query
      * @return Future of the data
      */
-    public CompletableFuture<SuggestionData> read(int id) {
+    public SuggestionData read(int id) {
         return storageHandler.readSuggestion(id);
     }
 
@@ -62,8 +63,8 @@ public class SuggestionHandler {
         return storageHandler.getSuggestions();
     }
 
-    public Map<Integer, Boolean> getVotedSuggestions(UUID uuid) {
-        Map<Integer, Boolean> map = storageHandler.getVotedSuggestions(uuid);
+    public Map<Integer, SuggestionVote> getVotedSuggestions(UUID uuid) {
+        Map<Integer, SuggestionVote> map = storageHandler.getVotedSuggestions(uuid);
         return map == null ? new HashMap<>() : map;
     }
 

@@ -15,3 +15,7 @@ libraries:
 commands:
   suggest:
     permission: simplesuggestions.command.suggest
+  simplesuggestions:
+    aliases:
+      - suggestions
+    permission: simplesuggestions.command

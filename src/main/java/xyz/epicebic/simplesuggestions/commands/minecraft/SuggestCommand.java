@@ -4,8 +4,8 @@ import me.epic.spigotlib.commands.SimpleCommandHandler;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import xyz.epicebic.simplesuggestions.SimpleSuggestions;
-import xyz.epicebic.simplesuggestions.gui.SuggestionViewerInventory;
-import xyz.epicebic.simplesuggestions.storage.SuggestionData;
+import xyz.epicebic.simplesuggestions.storage.data.SuggestionData;
+import xyz.epicebic.simplesuggestions.storage.data.Origin;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,15 +27,13 @@ public class SuggestCommand extends SimpleCommandHandler {
             return;
         }
         if (args.length < 1) {
-            player.sendMessage(plugin.getMessageConfig().getString("no-suggestion-provided"));
+            player.sendMessage(plugin.getMessageConfig().getString("minecraft.no-suggestion-provided"));
             return;
         }
 
-        SuggestionData data = new SuggestionData(SuggestionData.Type.MINECRAFT, player.getUniqueId(), String.join(" ", args));
+        SuggestionData data = new SuggestionData(Origin.MINECRAFT, player.getUniqueId(), String.join(" ", args));
         int id = plugin.getSuggestionHandler().save(data);
-        System.out.println(id);
-        plugin.getSuggestionHandler().addVotedSuggestion(id, player.getUniqueId(), true);
-        if (args[0].startsWith("openguinow")) plugin.getInventoryHandler().openGui(player, new SuggestionViewerInventory(player));
+        player.sendMessage(plugin.getMessageConfig().getString("minecraft.suggestion-created").replace("%id%", String.valueOf(id)));
     }
 
     @Override
