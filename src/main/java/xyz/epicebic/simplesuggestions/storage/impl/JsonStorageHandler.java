@@ -39,26 +39,7 @@ public class JsonStorageHandler implements StorageHandler {
 
     @Override
     public SuggestionData readSuggestion(Integer id) {
-        SuggestionData data = suggestions.get(id);
-        return data;
-    }
-
-    @Override
-    public Map<Integer, SuggestionData> readSuggestions(UUID uuid) {
-//        return CompletableFuture.supplyAsync(() -> {
-//            Map
-//            for (Map.Entry<Integer, SuggestionData> entry : suggestions.entrySet()) {
-//                if (entry.getValue().getSuggestionType() == SuggestionData.Type.MINECRAFT) {
-//
-//                }
-//            }
-//        });
-        return null;
-    }
-
-    @Override
-    public Map<Integer, SuggestionData> readSuggestions(Long id) {
-        return null;
+        return suggestions.get(id);
     }
 
     @Override
@@ -129,17 +110,80 @@ public class JsonStorageHandler implements StorageHandler {
 
     @Override
     public Map<Integer, SuggestionVote> getVotedSuggestions(Long id) {
-        return null;
+        return getUserData(id).orElse(new UserData()).getVotes();
     }
 
     @Override
     public void addVotedSuggestion(Integer id, Long userId, boolean choice) {
-        return;
+        // User data
+        UserData data = getUserData(userId).orElse(new UserData(userId, null));
+        AtomicReference<SuggestionVote> previousVote = new AtomicReference<>(SuggestionVote.NOVOTE);
+        SuggestionVote oldVote = data.getVotes().get(id);
+        previousVote.set(oldVote == null ? SuggestionVote.NOVOTE : oldVote);
+        playerData.remove(data);
+        data.updateVote(Origin.DISCORD, id, choice ? SuggestionVote.UPVOTE : SuggestionVote.DOWNVOTE);
+        playerData.add(data);
+
+        // Suggestion data
+        Optional<SuggestionData> suggestionDataOpt = Optional.ofNullable(suggestions.get(id));
+        suggestionDataOpt.ifPresent(suggestionData -> {
+            SuggestionVote vote = previousVote.get();
+            switch (vote) {
+                case UPVOTE -> suggestionData.decreaseUpvote();
+                case DOWNVOTE -> suggestionData.decreaseDownvote();
+            }
+            if (choice) {
+                suggestionData.increaseUpvote();
+            } else {
+                suggestionData.increaseDownvote();
+            }
+            suggestions.put(id, suggestionData);
+
+            // Reload open invs
+            plugin.getInventoryHandler().reloadSuggestionItem(id, suggestionData);
+        });
     }
 
     @Override
     public void removeVotedSuggestion(Integer id, Long userId) {
+        // User data
+        Optional<UserData> dataOpt = getUserData(userId);
+        AtomicReference<SuggestionVote> previousVote = new AtomicReference<>(SuggestionVote.NOVOTE);
+        dataOpt.ifPresent(userData -> {
+            previousVote.set(userData.getVotes().get(id));
+            playerData.remove(userData);
+            userData.updateVote(Origin.DISCORD,id, SuggestionVote.NOVOTE);
+            playerData.add(userData);
+        });
 
+        // Suggestion data
+        Optional<SuggestionData> suggestionDataOpt = Optional.ofNullable(suggestions.get(id));
+        SuggestionVote vote = previousVote.get();
+        if (vote != SuggestionVote.NOVOTE) {
+            suggestionDataOpt.ifPresent(suggestionData -> {
+                if (vote == SuggestionVote.UPVOTE) {
+                    suggestionData.decreaseUpvote();
+                } else {
+                    suggestionData.decreaseDownvote();
+                }
+                suggestions.put(id, suggestionData);
+
+                // Reload open inventories
+                plugin.getInventoryHandler().reloadSuggestionItem(id, suggestionData);
+            });
+        }
+    }
+
+    @Override
+    public void setSuggestionStatus(int id, SuggestionStatus newStatus) {
+        Optional<SuggestionData> suggestionData = Optional.ofNullable(suggestions.get(id));
+        suggestionData.ifPresent(data -> {
+            data.setStatus(newStatus);
+            suggestions.put(id, data);
+
+            // Reload open inventories
+            plugin.getInventoryHandler().reloadSuggestionItem(id, data);
+        });
     }
 
     @Override
@@ -182,7 +226,7 @@ public class JsonStorageHandler implements StorageHandler {
 
     @Override
     public Optional<UserData> getUserData(Long id) {
-        return null;
+        return playerData.stream().filter(userData -> userData.matchId(id)).findAny();
     }
 
     public Integer getNextId() {

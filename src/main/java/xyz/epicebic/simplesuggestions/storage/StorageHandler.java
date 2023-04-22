@@ -1,6 +1,7 @@
 package xyz.epicebic.simplesuggestions.storage;
 
 import xyz.epicebic.simplesuggestions.storage.data.SuggestionData;
+import xyz.epicebic.simplesuggestions.storage.data.SuggestionStatus;
 import xyz.epicebic.simplesuggestions.storage.data.SuggestionVote;
 import xyz.epicebic.simplesuggestions.storage.data.UserData;
 
@@ -12,8 +13,6 @@ public interface StorageHandler {
 
     int saveSuggestion(SuggestionData data);
     SuggestionData readSuggestion(Integer id);
-    Map<Integer, SuggestionData> readSuggestions(UUID uuid);
-    Map<Integer, SuggestionData> readSuggestions(Long id);
 
     Map<Integer, SuggestionVote> getVotedSuggestions(UUID uuid);
     void addVotedSuggestion(Integer id, UUID uuid, boolean choice);
@@ -22,6 +21,8 @@ public interface StorageHandler {
     Map<Integer, SuggestionVote> getVotedSuggestions(Long id);
     void addVotedSuggestion(Integer id, Long userId, boolean choice);
     void removeVotedSuggestion(Integer id, Long userId);
+
+    void setSuggestionStatus(int id, SuggestionStatus newStatus);
 
     Map<Integer, SuggestionData> getSuggestions();
 

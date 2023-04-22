@@ -4,6 +4,7 @@ import me.epic.spigotlib.utils.TickUtils;
 import org.bukkit.scheduler.BukkitTask;
 import xyz.epicebic.simplesuggestions.SimpleSuggestions;
 import xyz.epicebic.simplesuggestions.storage.data.SuggestionData;
+import xyz.epicebic.simplesuggestions.storage.data.SuggestionStatus;
 import xyz.epicebic.simplesuggestions.storage.data.SuggestionVote;
 import xyz.epicebic.simplesuggestions.storage.impl.JsonStorageHandler;
 
@@ -74,6 +75,10 @@ public class SuggestionHandler {
 
     public void removeVotedSuggestion(int id, UUID uuid) {
         storageHandler.removeVotedSuggestion(id, uuid);
+    }
+
+    public void setSuggestionStatus(int id, SuggestionStatus newStatus) {
+        storageHandler.setSuggestionStatus(id, newStatus);
     }
 
     public void saveData() {

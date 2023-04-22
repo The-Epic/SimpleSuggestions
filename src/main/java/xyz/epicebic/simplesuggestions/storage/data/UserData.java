@@ -48,5 +48,8 @@ public class UserData {
         return playerData != null && playerData.getPlayerUUID().equals(uuid);
     }
 
+    public boolean matchId(long id) {
+        return discordUserData != null && discordUserData.getDiscordUserId() == id;
+    }
 
 }
