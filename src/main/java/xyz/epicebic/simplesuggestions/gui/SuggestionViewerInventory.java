@@ -22,7 +22,6 @@ public class SuggestionViewerInventory extends CustomInventory {
     private static final int END_SLOT = 45;
     private static final int ITEMS_PER_PAGE = END_SLOT - START_SLOT;
     private final Map<Integer, SuggestionData> suggestionDataMap = new HashMap<>();
-    private final Map<Integer, SuggestionVote> playerVotes = new HashMap<>();
     private static final NamespacedKey INDEX_KEY = NamespacedKey.fromString("simplechatgames:index");
     private static final ItemStack PREV = new ItemBuilder(Material.PLAYER_HEAD).name("Previous Page")
             .skullTexture("81c96a5c3d13c3199183e1bc7f086f54ca2a6527126303ac8e25d63e16b64ccf").build();
@@ -42,7 +41,6 @@ public class SuggestionViewerInventory extends CustomInventory {
         super(null, 6, "<white>Suggestions");
         this.player = (Player) player;
         suggestionDataMap.putAll(getAllSuggestions());
-        playerVotes.putAll(getPlayerVotes(this.player));
         addClickConsumer(event -> {
             event.setCancelled(true);
 
@@ -61,15 +59,12 @@ public class SuggestionViewerInventory extends CustomInventory {
                             break;
                         }
                         handler.addVotedSuggestion(id, player.getUniqueId(), true);
-                        playerVotes.put(id, SuggestionVote.UPVOTE);
                     }
                     case MOVE_TO_OTHER_INVENTORY -> {
                         handler.removeVotedSuggestion(id, player.getUniqueId());
-                        playerVotes.remove(id);
                     }
                     case PICKUP_HALF -> {
                         handler.addVotedSuggestion(id, player.getUniqueId(), false);
-                        playerVotes.put(id, SuggestionVote.DOWNVOTE);
                     }
                 }
                 setItem(event.getRawSlot(), InventoryUtils.makeSuggestionItem(id, suggestionDataMap.get(id), player));

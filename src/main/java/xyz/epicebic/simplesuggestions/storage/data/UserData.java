@@ -11,6 +11,7 @@ import java.util.UUID;
 public class UserData {
     private DiscordUserData discordUserData;
     private PlayerData playerData;
+    private boolean banned;
 
     public UserData(@Nullable Long discordUserId, @Nullable UUID playerUUID) {
         if (discordUserId != null) this.discordUserData = new DiscordUserData(discordUserId);

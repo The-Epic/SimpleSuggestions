@@ -1,4 +1,9 @@
 minecraft:
+  no-permission: <red>You dont have permission for this command
   no-suggestion-provided: <red>Please provide a suggestion.
   suggestion-created: <green>Suggestion created as %id%
   suggestion-gui-opened: <green>Suggestion viewer inventory opened.
+  banned-user-message: <red>You have been banned from making suggestions.
+  no-player-provided: <red>Please provide a player name.
+  cannot-ban-yourself: <red>You cannot ban yourself.
+  banned-player: <green>Player %name% has been banned.

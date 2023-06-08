@@ -12,6 +12,4 @@ public abstract class CustomInventory extends me.epic.spigotlib.inventory.Custom
 
     public abstract void reloadItem(int suggestionId, SuggestionData newData);
 
-    @Override
-    public void reload() {}
 }

@@ -1,4 +1,4 @@
-package xyz.epicebic.simplesuggestions.commands.minecraft;
+package xyz.epicebic.simplesuggestions.commands;
 
 import me.epic.spigotlib.commands.SimpleCommandHandler;
 import org.bukkit.command.CommandSender;
@@ -11,7 +11,7 @@ public class OpenGUICommand extends SimpleCommandHandler {
     private final SimpleSuggestions plugin;
 
     public OpenGUICommand(SimpleSuggestions plugin) {
-        super("simplesuggestions.command.open");
+        super("simplesuggestions.command.open", plugin.getMessageConfig().getString("minecraft.no-permission"));
         this.plugin = plugin;
     }
 

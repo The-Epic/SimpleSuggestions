@@ -1,4 +1,4 @@
-package xyz.epicebic.simplesuggestions.commands.minecraft;
+package xyz.epicebic.simplesuggestions.commands;
 
 import me.epic.spigotlib.commands.SimpleCommandHandler;
 import me.epic.spigotlib.utils.TickUtils;
@@ -12,7 +12,7 @@ public class TestCommand extends SimpleCommandHandler {
     private final SimpleSuggestions plugin;
 
     public TestCommand(SimpleSuggestions plugin) {
-        super("simplesuggestions.command.test");
+        super("simplesuggestions.command.test", plugin.getMessageConfig().getString("minecraft.no-permission"));
         this.plugin = plugin;
     }
 
@@ -23,7 +23,7 @@ public class TestCommand extends SimpleCommandHandler {
             int i = 1;
             @Override
             public void run() {
-                if (i >= 1002) {
+                if (i >= 1000) {
                     cancel();
                     return;
                 }

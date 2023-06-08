@@ -1,21 +1,18 @@
-package xyz.epicebic.simplesuggestions.commands.minecraft;
+package xyz.epicebic.simplesuggestions.commands;
 
 import me.epic.spigotlib.commands.SimpleCommandHandler;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import xyz.epicebic.simplesuggestions.SimpleSuggestions;
-import xyz.epicebic.simplesuggestions.storage.data.SuggestionData;
 import xyz.epicebic.simplesuggestions.storage.data.Origin;
-
-import java.util.Collections;
-import java.util.List;
+import xyz.epicebic.simplesuggestions.storage.data.SuggestionData;
 
 public class SuggestCommand extends SimpleCommandHandler {
 
     private final SimpleSuggestions plugin;
 
     public SuggestCommand(SimpleSuggestions plugin) {
-        super("simplesuggestions.command.suggest");
+        super("simplesuggestions.command.suggest", plugin.getMessageConfig().getString("minecraft.no-permission"));
         this.plugin = plugin;
     }
 
@@ -30,14 +27,14 @@ public class SuggestCommand extends SimpleCommandHandler {
             player.sendMessage(plugin.getMessageConfig().getString("minecraft.no-suggestion-provided"));
             return;
         }
+        if (plugin.getSuggestionHandler().isUserBanned(player.getUniqueId())) {
+            player.sendMessage(plugin.getMessageConfig().getString("minecraft.banned-user-message"));
+            return;
+        }
 
         SuggestionData data = new SuggestionData(Origin.MINECRAFT, player.getUniqueId(), String.join(" ", args));
         int id = plugin.getSuggestionHandler().save(data);
         player.sendMessage(plugin.getMessageConfig().getString("minecraft.suggestion-created").replace("%id%", String.valueOf(id)));
     }
 
-    @Override
-    public List<String> handleTabCompletion(CommandSender sender, String[] args) {
-        return Collections.emptyList();
-    }
 }

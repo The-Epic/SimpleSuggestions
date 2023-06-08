@@ -11,12 +11,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
-public class JsonStorageHandler implements StorageHandler {
+public class JsonStorageHandler extends StorageHandler {
 
     private int nextId = 1;
-    private final Map<Integer, SuggestionData> suggestions = new HashMap<>();
-    private final List<UserData> playerData = new ArrayList<>();
     private final Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
     private final File jsonFile = new File(SimpleSuggestions.getInstance().getDataFolder(), "data.json");
     private final SimpleSuggestions plugin;
@@ -24,88 +23,38 @@ public class JsonStorageHandler implements StorageHandler {
     @SneakyThrows
     @SuppressWarnings("null")
     public JsonStorageHandler(SimpleSuggestions plugin) {
+        super(plugin);
         this.plugin = plugin;
         if (jsonFile.exists()) {
-            suggestions.putAll(readFile());
+            super.suggestions.putAll(readFile());
         }
     }
 
     @Override
     public int saveSuggestion(SuggestionData data) {
-        Integer newId = getNextId();
-        suggestions.put(newId, data);
+        int newId = getNextId();
+        super.suggestions.put(newId, data);
         return newId;
     }
 
     @Override
     public SuggestionData readSuggestion(Integer id) {
-        return suggestions.get(id);
+        return super.suggestions.get(id);
     }
 
     @Override
     public Map<Integer, SuggestionVote> getVotedSuggestions(UUID uuid) {
-        return getUserData(uuid).orElse(new UserData()).getVotes();
+        return getUserData(uuid).map(UserData::getVotes).orElse(Collections.emptyMap());
     }
 
     @Override
     public void addVotedSuggestion(Integer id, UUID uuid, boolean choice) {
-        // Player data
-        UserData data = getUserData(uuid).orElse(new UserData(null, uuid));
-        AtomicReference<SuggestionVote> previousVote = new AtomicReference<>(SuggestionVote.NOVOTE);
-        SuggestionVote oldVote = data.getVotes().get(id);
-        previousVote.set(oldVote == null ? SuggestionVote.NOVOTE : oldVote);
-        playerData.remove(data);
-        data.updateVote(Origin.MINECRAFT, id, choice ? SuggestionVote.UPVOTE : SuggestionVote.DOWNVOTE);
-        playerData.add(data);
-
-        // Suggestion data
-        Optional<SuggestionData> suggestionDataOpt = Optional.ofNullable(suggestions.get(id));
-        suggestionDataOpt.ifPresent(suggestionData -> {
-            SuggestionVote vote = previousVote.get();
-            switch (vote) {
-                case UPVOTE -> suggestionData.decreaseUpvote();
-                case DOWNVOTE -> suggestionData.decreaseDownvote();
-            }
-            if (choice) {
-                suggestionData.increaseUpvote();
-            } else {
-                suggestionData.increaseDownvote();
-            }
-            suggestions.put(id, suggestionData);
-
-            // Reload open invs
-            plugin.getInventoryHandler().reloadSuggestionItem(id, suggestionData);
-        });
+        updateVotes(id, uuid, choice, Origin.MINECRAFT);
     }
 
     @Override
     public void removeVotedSuggestion(Integer id, UUID uuid) {
-        // Player data
-        Optional<UserData> dataOpt = getUserData(uuid);
-        AtomicReference<SuggestionVote> previousVote = new AtomicReference<>(SuggestionVote.NOVOTE);
-        dataOpt.ifPresent(userData -> {
-            previousVote.set(userData.getVotes().get(id));
-            playerData.remove(userData);
-            userData.updateVote(Origin.MINECRAFT,id, SuggestionVote.NOVOTE);
-            playerData.add(userData);
-        });
-
-        // Suggestion data
-        Optional<SuggestionData> suggestionDataOpt = Optional.ofNullable(suggestions.get(id));
-        SuggestionVote vote = previousVote.get();
-        if (vote != SuggestionVote.NOVOTE) {
-            suggestionDataOpt.ifPresent(suggestionData -> {
-                if (vote == SuggestionVote.UPVOTE) {
-                    suggestionData.decreaseUpvote();
-                } else {
-                    suggestionData.decreaseDownvote();
-                }
-                suggestions.put(id, suggestionData);
-
-                // Reload open inventories
-                plugin.getInventoryHandler().reloadSuggestionItem(id, suggestionData);
-            });
-        }
+        removeVotes(id, uuid, Origin.MINECRAFT);
     }
 
     @Override
@@ -115,73 +64,20 @@ public class JsonStorageHandler implements StorageHandler {
 
     @Override
     public void addVotedSuggestion(Integer id, Long userId, boolean choice) {
-        // User data
-        UserData data = getUserData(userId).orElse(new UserData(userId, null));
-        AtomicReference<SuggestionVote> previousVote = new AtomicReference<>(SuggestionVote.NOVOTE);
-        SuggestionVote oldVote = data.getVotes().get(id);
-        previousVote.set(oldVote == null ? SuggestionVote.NOVOTE : oldVote);
-        playerData.remove(data);
-        data.updateVote(Origin.DISCORD, id, choice ? SuggestionVote.UPVOTE : SuggestionVote.DOWNVOTE);
-        playerData.add(data);
-
-        // Suggestion data
-        Optional<SuggestionData> suggestionDataOpt = Optional.ofNullable(suggestions.get(id));
-        suggestionDataOpt.ifPresent(suggestionData -> {
-            SuggestionVote vote = previousVote.get();
-            switch (vote) {
-                case UPVOTE -> suggestionData.decreaseUpvote();
-                case DOWNVOTE -> suggestionData.decreaseDownvote();
-            }
-            if (choice) {
-                suggestionData.increaseUpvote();
-            } else {
-                suggestionData.increaseDownvote();
-            }
-            suggestions.put(id, suggestionData);
-
-            // Reload open invs
-            plugin.getInventoryHandler().reloadSuggestionItem(id, suggestionData);
-        });
+        updateVotes(id, userId, choice, Origin.DISCORD);
     }
 
     @Override
     public void removeVotedSuggestion(Integer id, Long userId) {
-        // User data
-        Optional<UserData> dataOpt = getUserData(userId);
-        AtomicReference<SuggestionVote> previousVote = new AtomicReference<>(SuggestionVote.NOVOTE);
-        dataOpt.ifPresent(userData -> {
-            previousVote.set(userData.getVotes().get(id));
-            playerData.remove(userData);
-            userData.updateVote(Origin.DISCORD,id, SuggestionVote.NOVOTE);
-            playerData.add(userData);
-        });
-
-        // Suggestion data
-        Optional<SuggestionData> suggestionDataOpt = Optional.ofNullable(suggestions.get(id));
-        SuggestionVote vote = previousVote.get();
-        if (vote != SuggestionVote.NOVOTE) {
-            suggestionDataOpt.ifPresent(suggestionData -> {
-                if (vote == SuggestionVote.UPVOTE) {
-                    suggestionData.decreaseUpvote();
-                } else {
-                    suggestionData.decreaseDownvote();
-                }
-                suggestions.put(id, suggestionData);
-
-                // Reload open inventories
-                plugin.getInventoryHandler().reloadSuggestionItem(id, suggestionData);
-            });
-        }
+        removeVotes(id, userId, Origin.DISCORD);
     }
 
     @Override
     public void setSuggestionStatus(int id, SuggestionStatus newStatus) {
-        Optional<SuggestionData> suggestionData = Optional.ofNullable(suggestions.get(id));
+        Optional<SuggestionData> suggestionData = Optional.ofNullable(super.suggestions.get(id));
         suggestionData.ifPresent(data -> {
             data.setStatus(newStatus);
-            suggestions.put(id, data);
-
-            // Reload open inventories
+            super.suggestions.put(id, data);
             plugin.getInventoryHandler().reloadSuggestionItem(id, data);
         });
     }
@@ -194,24 +90,8 @@ public class JsonStorageHandler implements StorageHandler {
     @Override
     public void save() {
         JsonObject jsonObject = new JsonObject();
-
-        // Save suggestions map
-        JsonObject suggestionsObject = new JsonObject();
-        for (Map.Entry<Integer, SuggestionData> entry : suggestions.entrySet()) {
-            suggestionsObject.add(String.valueOf(entry.getKey()), gson.toJsonTree(entry.getValue()));
-        }
-        jsonObject.add("suggestions", suggestionsObject);
-
-        // Save playerData list
-        JsonArray playerDataArray = new JsonArray();
-        for (UserData userData : playerData) {
-            JsonObject userDataObject = new JsonObject();
-            userDataObject.add("discordUserData", gson.toJsonTree(userData.getDiscordUserData()));
-            userDataObject.add("playerData", gson.toJsonTree(userData.getPlayerData()));
-            playerDataArray.add(userDataObject);
-        }
-        jsonObject.add("playerData", playerDataArray);
-
+        saveSuggestions(jsonObject);
+        savePlayerData(jsonObject);
         try {
             Files.writeString(jsonFile.toPath(), gson.toJson(jsonObject));
         } catch (IOException ex) {
@@ -221,15 +101,33 @@ public class JsonStorageHandler implements StorageHandler {
 
     @Override
     public Optional<UserData> getUserData(UUID uuid) {
-        return playerData.stream().filter(userData -> userData.matchUUID(uuid)).findAny();
+        return super.playerData.stream().filter(userData -> userData.matchUUID(uuid)).findAny();
     }
 
     @Override
     public Optional<UserData> getUserData(Long id) {
-        return playerData.stream().filter(userData -> userData.matchId(id)).findAny();
+        return super.playerData.stream().filter(userData -> userData.matchId(id)).findAny();
     }
 
-    public Integer getNextId() {
+    @Override
+    public void updateUserData(UUID uuid, Consumer<UserData> updater) {
+        Optional<UserData> userDataOptional = getUserData(uuid);
+
+        if (userDataOptional.isPresent()) {
+            updater.accept(userDataOptional.get());
+        } else {
+            UserData newUserData = new UserData(null, uuid);
+            updater.accept(newUserData);
+            super.playerData.add(newUserData);
+        }
+    }
+
+    @Override
+    public void updateUserData(Long id, Consumer<UserData> updatedData) {
+        getUserData(id).ifPresent(updatedData);
+    }
+
+    public int getNextId() {
         return nextId++;
     }
 
@@ -240,34 +138,121 @@ public class JsonStorageHandler implements StorageHandler {
         if (element.isJsonObject()) {
             JsonObject jsonObject = element.getAsJsonObject();
 
-            // Read suggestions map
-            Map<Integer, SuggestionData> suggestionDataMap = new HashMap<>();
-            if (jsonObject.has("suggestions")) {
-                JsonObject suggestionsObject = jsonObject.getAsJsonObject("suggestions");
-                for (Map.Entry<String, JsonElement> entry : suggestionsObject.entrySet()) {
-                    int id = Integer.parseInt(entry.getKey());
-                    SuggestionData data = gson.fromJson(entry.getValue(), SuggestionData.class);
-                    nextId = id + 1;
-                    suggestionDataMap.put(id, data);
-                }
-            }
+            Map<Integer, SuggestionData> suggestionDataMap = readSuggestions(jsonObject);
+            List<UserData> playerDataList = readPlayerData(jsonObject);
 
-            // Read playerData list
-            List<UserData> playerDataList = new ArrayList<>();
-            if (jsonObject.has("playerData")) {
-                JsonArray playerDataArray = jsonObject.getAsJsonArray("playerData");
-                for (JsonElement jsonElement : playerDataArray) {
-                    JsonObject userDataObject = jsonElement.getAsJsonObject();
-                    DiscordUserData discordUserData = gson.fromJson(userDataObject.get("discordUserData"), DiscordUserData.class);
-                    PlayerData playerData = gson.fromJson(userDataObject.get("playerData"), PlayerData.class);
-                    playerDataList.add(new UserData(discordUserData, playerData));
-                }
-            }
-
-            this.playerData.addAll(playerDataList);
+            super.playerData.addAll(playerDataList);
 
             return suggestionDataMap;
         }
         throw new IllegalArgumentException("The json is misformatted. Regenerate the file");
+    }
+
+    private void updateVotes(Integer id, Object userIdentifier, boolean choice, Origin origin) {
+        Optional<UserData> userDataOpt;
+        if (userIdentifier instanceof UUID uuid) {
+            userDataOpt = getUserData(uuid);
+        } else {
+            userDataOpt = getUserData((Long) userIdentifier);
+        }
+        AtomicReference<SuggestionVote> previousVote = new AtomicReference<>(SuggestionVote.NOVOTE);
+        userDataOpt.ifPresent(userData -> {
+            previousVote.set(userData.getVotes().get(id));
+            super.playerData.remove(userData);
+            userData.updateVote(origin, id, choice ? SuggestionVote.UPVOTE : SuggestionVote.DOWNVOTE);
+            super.playerData.add(userData);
+        });
+
+        Optional<SuggestionData> suggestionDataOpt = Optional.ofNullable(super.suggestions.get(id));
+        SuggestionVote vote = previousVote.get();
+        if (vote != SuggestionVote.NOVOTE) {
+            suggestionDataOpt.ifPresent(suggestionData -> {
+                if (vote == SuggestionVote.UPVOTE) {
+                    suggestionData.decreaseUpvote();
+                } else {
+                    suggestionData.decreaseDownvote();
+                }
+                super.suggestions.put(id, suggestionData);
+                plugin.getInventoryHandler().reloadSuggestionItem(id, suggestionData);
+            });
+        }
+    }
+
+    private void removeVotes(Integer id, Object userIdentifier, Origin origin) {
+        Optional<UserData> dataOpt;
+        if (userIdentifier instanceof UUID uuid) {
+            dataOpt = getUserData(uuid);
+        } else {
+            dataOpt = getUserData((Long) userIdentifier);
+        }
+        AtomicReference<SuggestionVote> previousVote = new AtomicReference<>(SuggestionVote.NOVOTE);
+        dataOpt.ifPresent(userData -> {
+            previousVote.set(userData.getVotes().get(id));
+            super.playerData.remove(userData);
+            userData.updateVote(origin, id, SuggestionVote.NOVOTE);
+            super.playerData.add(userData);
+        });
+
+        Optional<SuggestionData> suggestionDataOpt = Optional.ofNullable(super.suggestions.get(id));
+        SuggestionVote vote = previousVote.get();
+        if (vote != SuggestionVote.NOVOTE) {
+            suggestionDataOpt.ifPresent(suggestionData -> {
+                if (vote == SuggestionVote.UPVOTE) {
+                    suggestionData.decreaseUpvote();
+                } else {
+                    suggestionData.decreaseDownvote();
+                }
+                super.suggestions.put(id, suggestionData);
+                plugin.getInventoryHandler().reloadSuggestionItem(id, suggestionData);
+            });
+        }
+    }
+
+    private void saveSuggestions(JsonObject jsonObject) {
+        JsonObject suggestionsObject = new JsonObject();
+        for (Map.Entry<Integer, SuggestionData> entry : super.suggestions.entrySet()) {
+            suggestionsObject.add(String.valueOf(entry.getKey()), gson.toJsonTree(entry.getValue()));
+        }
+        jsonObject.add("suggestions", suggestionsObject);
+    }
+
+    private void savePlayerData(JsonObject jsonObject) {
+        JsonArray playerDataArray = new JsonArray();
+        for (UserData userData : playerData) {
+            JsonObject userDataObject = new JsonObject();
+            userDataObject.add("discordUserData", gson.toJsonTree(userData.getDiscordUserData()));
+            userDataObject.add("playerData", gson.toJsonTree(userData.getPlayerData()));
+            playerDataArray.add(userDataObject);
+        }
+        jsonObject.add("playerData", playerDataArray);
+    }
+
+
+    private Map<Integer, SuggestionData> readSuggestions(JsonObject jsonObject) {
+        Map<Integer, SuggestionData> suggestionDataMap = new HashMap<>();
+        if (jsonObject.has("suggestions")) {
+            JsonObject suggestionsObject = jsonObject.getAsJsonObject("suggestions");
+            for (Map.Entry<String, JsonElement> entry : suggestionsObject.entrySet()) {
+                int id = Integer.parseInt(entry.getKey());
+                SuggestionData data = gson.fromJson(entry.getValue(), SuggestionData.class);
+                nextId = Math.max(nextId, id + 1);
+                suggestionDataMap.put(id, data);
+            }
+        }
+        return suggestionDataMap;
+    }
+
+    private List<UserData> readPlayerData(JsonObject jsonObject) {
+        List<UserData> playerDataList = new ArrayList<>();
+        if (jsonObject.has("playerData")) {
+            JsonArray playerDataArray = jsonObject.getAsJsonArray("playerData");
+            for (JsonElement jsonElement : playerDataArray) {
+                JsonObject userDataObject = jsonElement.getAsJsonObject();
+                DiscordUserData discordUserData = gson.fromJson(userDataObject.get("discordUserData"), DiscordUserData.class);
+                PlayerData playerData = gson.fromJson(userDataObject.get("playerData"), PlayerData.class);
+                playerDataList.add(new UserData(discordUserData, playerData));
+            }
+        }
+        return playerDataList;
     }
 }

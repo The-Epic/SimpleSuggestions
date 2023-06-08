@@ -6,11 +6,13 @@ import xyz.epicebic.simplesuggestions.SimpleSuggestions;
 import xyz.epicebic.simplesuggestions.storage.data.SuggestionData;
 import xyz.epicebic.simplesuggestions.storage.data.SuggestionStatus;
 import xyz.epicebic.simplesuggestions.storage.data.SuggestionVote;
+import xyz.epicebic.simplesuggestions.storage.data.UserData;
 import xyz.epicebic.simplesuggestions.storage.impl.JsonStorageHandler;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class SuggestionHandler {
 
@@ -80,6 +82,28 @@ public class SuggestionHandler {
     public void setSuggestionStatus(int id, SuggestionStatus newStatus) {
         storageHandler.setSuggestionStatus(id, newStatus);
     }
+
+    public void updateUserData(UUID uuid, Consumer<UserData> newData) {
+        storageHandler.updateUserData(uuid, newData);
+    }
+
+    public void updateUserData(Long id, Consumer<UserData> newData) {
+        storageHandler.updateUserData(id, newData);
+    }
+
+    public boolean isUserBanned(UUID uuid) {
+        return storageHandler.getUserData(uuid)
+                .map(UserData::isBanned)
+                .orElse(false);
+    }
+
+    public boolean isUserBanned(long id) {
+        return storageHandler.getUserData(id)
+                .map(UserData::isBanned)
+                .orElse(false);
+    }
+
+
 
     public void saveData() {
         storageHandler.save();

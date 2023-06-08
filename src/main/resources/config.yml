@@ -3,6 +3,7 @@ discord-bot:
   enabled: false
   token: "CHANGE-ME"
   status: "ONLINE"
+  guild-id: 0
   activity:
     type: "WATCHING"
     text: "Your suggestions!"
