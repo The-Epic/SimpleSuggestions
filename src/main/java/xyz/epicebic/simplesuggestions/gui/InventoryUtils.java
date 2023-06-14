@@ -10,7 +10,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import xyz.epicebic.simplesuggestions.SimpleSuggestions;
+import xyz.epicebic.simplesuggestions.SimpleSuggestionsPlugin;
 import xyz.epicebic.simplesuggestions.storage.data.SuggestionData;
 import xyz.epicebic.simplesuggestions.storage.data.SuggestionStatus;
 import xyz.epicebic.simplesuggestions.storage.data.SuggestionVote;
@@ -73,7 +73,7 @@ public class InventoryUtils {
         lore.add("<gold>Origin: <white>" + WordUtils.getNiceName(data.getSuggestionType().toString()));
         lore.add("<gold>Owner: <white>" + data.getOwnersName());
         lore.add("");
-        SuggestionVote playerVote = SimpleSuggestions.getInstance().getSuggestionHandler().getVotedSuggestions(player.getUniqueId()).get(id);
+        SuggestionVote playerVote = SimpleSuggestionsPlugin.getInstance().getSuggestionHandler().getVotedSuggestions(player.getUniqueId()).get(id);
         if (playerVote != null && playerVote != SuggestionVote.NOVOTE) {
             builder.enchantment(Enchantment.MENDING, 1);
             builder.flags(ItemFlag.HIDE_ENCHANTS);

@@ -23,17 +23,14 @@ import xyz.epicebic.simplesuggestions.discord.DiscordCommandHandler;
 import xyz.epicebic.simplesuggestions.gui.InventoryHandler;
 import xyz.epicebic.simplesuggestions.storage.SuggestionHandler;
 
-public class SimpleSuggestions extends JavaPlugin {
+@Getter
+public class SimpleSuggestionsPlugin extends JavaPlugin {
 
-    @Getter
     private MessageConfig messageConfig;
-    @Getter
     private JDA jda;
     @Getter
-    private static SimpleSuggestions instance;
-    @Getter
+    private static SimpleSuggestionsPlugin instance;
     private SuggestionHandler suggestionHandler;
-    @Getter
     private InventoryHandler inventoryHandler;
 
     @Override
@@ -48,7 +45,14 @@ public class SimpleSuggestions extends JavaPlugin {
         EpicSpigotLib.loadNMS(instance);
         FileUtils.loadResourceFile(instance, "messages.yml").ifPresent(file -> this.messageConfig = new MessageConfig(file));
         ConfigUpdater.runConfigUpdater(instance);
-        this.suggestionHandler = new SuggestionHandler(instance);
+        try {
+            this.suggestionHandler = new SuggestionHandler(instance);
+        } catch (IllegalArgumentException ex) {
+            getLogger().warning("Suggestion Handler failed to load, disabling.");
+            getPluginLoader().disablePlugin(this);
+            ex.printStackTrace();
+            return;
+        }
         this.inventoryHandler = new InventoryHandler();
         Bukkit.getPluginManager().registerEvents(inventoryHandler, instance);
         reload();

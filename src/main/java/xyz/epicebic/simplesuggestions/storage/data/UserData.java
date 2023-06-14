@@ -9,48 +9,38 @@ import java.util.UUID;
 
 @Data
 public class UserData {
-    private DiscordUserData discordUserData;
-    private PlayerData playerData;
+    private UUID minecraftUID;
+    private Long discordUID;
+
     private boolean banned;
 
+    private Map<Integer, SuggestionVote> votes = new HashMap<>();
+
     public UserData(@Nullable Long discordUserId, @Nullable UUID playerUUID) {
-        if (discordUserId != null) this.discordUserData = new DiscordUserData(discordUserId);
-        if (playerUUID != null) this.playerData = new PlayerData(playerUUID);
+        if (discordUserId != null) this.discordUID = discordUserId;
+        if (playerUUID != null) this.minecraftUID = playerUUID;
     }
 
-    public UserData(DiscordUserData discordUserData, PlayerData playerData) {
-        this.playerData = playerData;
-        this.discordUserData = discordUserData;
+    public UserData(@Nullable Long discordUserId, @Nullable UUID playerUUID, boolean banned, Map<Integer, SuggestionVote> votes) {
+        this(discordUserId, playerUUID);
+        this.banned = banned;
+        this.votes.putAll(votes);
     }
 
     public UserData() {
 
     }
 
-    public Map<Integer, SuggestionVote> getVotes() {
-        Map<Integer, SuggestionVote> toReturn = new HashMap<>();
-        if (discordUserData != null) {
-            toReturn.putAll(discordUserData.getVotes());
-        }
-        if (playerData != null) {
-            toReturn.putAll(playerData.getVotes());
-        }
-        return toReturn;
-    }
-
-    public void updateVote(Origin origin, int id, SuggestionVote newVote) {
-        switch (origin) {
-            case DISCORD -> discordUserData.updateVote(id, newVote);
-            case MINECRAFT -> playerData.updateVote(id, newVote);
-        }
+    public void updateVote(int id, SuggestionVote newVote) {
+        votes.put(id, newVote);
     }
 
     public boolean matchUUID(UUID uuid) {
-        return playerData != null && playerData.getPlayerUUID().equals(uuid);
+        return minecraftUID != null && minecraftUID.equals(uuid);
     }
 
     public boolean matchId(long id) {
-        return discordUserData != null && discordUserData.getDiscordUserId() == id;
+        return discordUID != null && discordUID == id;
     }
 
 }

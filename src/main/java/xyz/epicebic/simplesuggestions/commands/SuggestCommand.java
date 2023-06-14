@@ -3,15 +3,15 @@ package xyz.epicebic.simplesuggestions.commands;
 import me.epic.spigotlib.commands.SimpleCommandHandler;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import xyz.epicebic.simplesuggestions.SimpleSuggestions;
+import xyz.epicebic.simplesuggestions.SimpleSuggestionsPlugin;
 import xyz.epicebic.simplesuggestions.storage.data.Origin;
 import xyz.epicebic.simplesuggestions.storage.data.SuggestionData;
 
 public class SuggestCommand extends SimpleCommandHandler {
 
-    private final SimpleSuggestions plugin;
+    private final SimpleSuggestionsPlugin plugin;
 
-    public SuggestCommand(SimpleSuggestions plugin) {
+    public SuggestCommand(SimpleSuggestionsPlugin plugin) {
         super("simplesuggestions.command.suggest", plugin.getMessageConfig().getString("minecraft.no-permission"));
         this.plugin = plugin;
     }

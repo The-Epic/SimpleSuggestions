@@ -1,6 +1,6 @@
 name: SimpleSuggestions
 version: '${version}'
-main: xyz.epicebic.simplesuggestions.SimpleSuggestions
+main: xyz.epicebic.simplesuggestions.SimpleSuggestionsPlugin
 api-version: 1.18
 authors: [ Epic ]
 website: https://github.com/The-Epic/SimpleSuggestions

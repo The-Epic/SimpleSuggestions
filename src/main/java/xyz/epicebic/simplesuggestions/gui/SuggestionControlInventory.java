@@ -6,7 +6,7 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
-import xyz.epicebic.simplesuggestions.SimpleSuggestions;
+import xyz.epicebic.simplesuggestions.SimpleSuggestionsPlugin;
 import xyz.epicebic.simplesuggestions.storage.SuggestionHandler;
 import xyz.epicebic.simplesuggestions.storage.data.SuggestionData;
 import xyz.epicebic.simplesuggestions.storage.data.SuggestionStatus;
@@ -20,7 +20,7 @@ public class SuggestionControlInventory extends CustomInventory {
 
     public SuggestionControlInventory(int suggestionId, HumanEntity player) {
         super(null, 6, "<white>Suggestion Controls");
-        this.suggestionData = SimpleSuggestions.getInstance().getSuggestionHandler().getSuggestions().get(suggestionId);
+        this.suggestionData = SimpleSuggestionsPlugin.getInstance().getSuggestionHandler().getSuggestions().get(suggestionId);
 
         suggestionID = suggestionId;
         addClickConsumer((event) -> event.setCancelled(true));
@@ -33,7 +33,7 @@ public class SuggestionControlInventory extends CustomInventory {
             setItem(i, FILLER);
         }
 
-        SuggestionHandler handler = SimpleSuggestions.getInstance().getSuggestionHandler();
+        SuggestionHandler handler = SimpleSuggestionsPlugin.getInstance().getSuggestionHandler();
 
         // Suggestion item
         setItem(13, InventoryUtils.makeSuggestionItem(suggestionId, suggestionData, player));
@@ -93,6 +93,6 @@ public class SuggestionControlInventory extends CustomInventory {
     private void openOldInv(InventoryClickEvent event) {
         Player player = (Player) event.getView().getPlayer();
         player.closeInventory();
-        SimpleSuggestions.getInstance().getInventoryHandler().openGui(player, new SuggestionViewerInventory(player, InventoryUtils.getStartSlot(suggestionID)));
+        SimpleSuggestionsPlugin.getInstance().getInventoryHandler().openGui(player, new SuggestionViewerInventory(player, InventoryUtils.getStartSlot(suggestionID)));
     }
 }

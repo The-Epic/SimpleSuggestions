@@ -5,7 +5,7 @@ import lombok.Data;
 import net.dv8tion.jda.api.entities.User;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Nullable;
-import xyz.epicebic.simplesuggestions.SimpleSuggestions;
+import xyz.epicebic.simplesuggestions.SimpleSuggestionsPlugin;
 
 import java.util.UUID;
 
@@ -73,7 +73,7 @@ public class SuggestionData {
         if (suggestionType == Origin.MINECRAFT) {
             return Bukkit.getOfflinePlayer(ownerMinecraftUUID).getName();
         }
-        User user = SimpleSuggestions.getInstance().getJda().getUserById(ownerDiscordID);
+        User user = SimpleSuggestionsPlugin.getInstance().getJda().getUserById(ownerDiscordID);
         if (user == null) return lastOwnerName;
         return user.getName();
     }

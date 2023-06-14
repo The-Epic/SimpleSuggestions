@@ -5,13 +5,13 @@ import me.epic.spigotlib.utils.TickUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.scheduler.BukkitRunnable;
-import xyz.epicebic.simplesuggestions.SimpleSuggestions;
+import xyz.epicebic.simplesuggestions.SimpleSuggestionsPlugin;
 
 public class TestCommand extends SimpleCommandHandler {
 
-    private final SimpleSuggestions plugin;
+    private final SimpleSuggestionsPlugin plugin;
 
-    public TestCommand(SimpleSuggestions plugin) {
+    public TestCommand(SimpleSuggestionsPlugin plugin) {
         super("simplesuggestions.command.test", plugin.getMessageConfig().getString("minecraft.no-permission"));
         this.plugin = plugin;
     }

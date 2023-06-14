@@ -9,7 +9,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import xyz.epicebic.simplesuggestions.SimpleSuggestions;
+import xyz.epicebic.simplesuggestions.SimpleSuggestionsPlugin;
 import xyz.epicebic.simplesuggestions.storage.SuggestionHandler;
 import xyz.epicebic.simplesuggestions.storage.data.SuggestionData;
 import xyz.epicebic.simplesuggestions.storage.data.SuggestionVote;
@@ -45,7 +45,7 @@ public class SuggestionViewerInventory extends CustomInventory {
             event.setCancelled(true);
 
             Optional<ItemStack> optionalClickedItem = Optional.ofNullable(event.getCurrentItem());
-            SuggestionHandler handler = SimpleSuggestions.getInstance().getSuggestionHandler();
+            SuggestionHandler handler = SimpleSuggestionsPlugin.getInstance().getSuggestionHandler();
 
             int id = optionalClickedItem
                     .flatMap(InventoryUtils::getSuggestionIdFromItem)
@@ -55,7 +55,7 @@ public class SuggestionViewerInventory extends CustomInventory {
                 switch (event.getAction()) {
                     case PICKUP_ALL -> {
                         if (player.hasPermission("simplesuggestions.staff")) {
-                            SimpleSuggestions.getInstance().getInventoryHandler().openGui(player, new SuggestionControlInventory(id, player));
+                            SimpleSuggestionsPlugin.getInstance().getInventoryHandler().openGui(player, new SuggestionControlInventory(id, player));
                             break;
                         }
                         handler.addVotedSuggestion(id, player.getUniqueId(), true);
@@ -136,11 +136,11 @@ public class SuggestionViewerInventory extends CustomInventory {
 
 
     private Map<Integer, SuggestionData> getAllSuggestions() {
-        return SimpleSuggestions.getInstance().getSuggestionHandler().getSuggestions();
+        return SimpleSuggestionsPlugin.getInstance().getSuggestionHandler().getSuggestions();
     }
 
     private Map<Integer, SuggestionVote> getPlayerVotes(Player player) {
-        return SimpleSuggestions.getInstance().getSuggestionHandler().getVotedSuggestions(player.getUniqueId());
+        return SimpleSuggestionsPlugin.getInstance().getSuggestionHandler().getVotedSuggestions(player.getUniqueId());
     }
 
 
