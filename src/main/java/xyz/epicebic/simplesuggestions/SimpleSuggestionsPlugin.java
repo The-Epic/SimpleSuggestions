@@ -42,7 +42,7 @@ public class SimpleSuggestionsPlugin extends JavaPlugin {
     public void onEnable() {
         // Plugin startup logic
         instance = this;
-        EpicSpigotLib.loadNMS(instance);
+        EpicSpigotLib.initNMS(instance);
         FileUtils.loadResourceFile(instance, "messages.yml").ifPresent(file -> this.messageConfig = new MessageConfig(file));
         ConfigUpdater.runConfigUpdater(instance);
         try {
@@ -101,12 +101,8 @@ public class SimpleSuggestionsPlugin extends JavaPlugin {
 
     private void loadLibraries() {
         final BukkitLibraryManager libraryManager = new BukkitLibraryManager(this);
-        Library lib = Library.builder().groupId("me.epic").artifactId("epicspigotlib").version("1.2.10-SNAPSHOT").url("https://github.com/The-Epic/EpicSpigotLib/releases/download/1.2.10-SNAPSHOT/epicspigotlib-1.2.10-SNAPSHOT.jar").id("EpicSpigotLib").build();
         Library JDA = Library.builder().groupId("net.dv8tion").artifactId("JDA").version("5.0.0-beta.8").id("JDA (Java Discord API)").build();
-        Library hikariCP = Library.builder().groupId("com.zaxxer").artifactId("HikariCP").version("5.0.1").id("HikariCP (Database Manager)").build();
         libraryManager.addMavenCentral();
-        libraryManager.loadLibrary(lib);
         libraryManager.loadLibrary(JDA);
-        libraryManager.loadLibrary(hikariCP);
     }
 }
